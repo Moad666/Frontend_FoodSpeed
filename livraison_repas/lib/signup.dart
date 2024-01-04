@@ -142,7 +142,7 @@ Future<void> SignUpUser() async {
                 bottomLeft: Radius.circular(200),
                 bottomRight: Radius.circular(200))),
       ),
-       body: Padding(
+       body: SingleChildScrollView( child : Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -260,6 +260,6 @@ Future<void> SignUpUser() async {
           ],
         ),
       ),
-    );
+    ));
   }
 }

@@ -3,6 +3,8 @@ import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:livraison_repas/Dashboard.dart';
+import 'package:livraison_repas/dishes.dart';
 
 class user extends StatefulWidget {
   const user({Key? key});
@@ -252,7 +254,7 @@ class _userState extends State<user> {
       List<dynamic> jsonResponse = json.decode(response.body);
       return jsonResponse.map((ouruser) => User.fromJson(ouruser)).toList();
     } else {
-      throw Exception('Failed to load categories');
+      throw Exception('Failed to load users');
     }
   }
 
@@ -271,7 +273,9 @@ class _userState extends State<user> {
         centerTitle: true,
         backgroundColor: Color(0xFFC79A99),
       ),
-      body: Column(
+      drawer: AppDrawer(), 
+      body:
+      SingleChildScrollView ( child : Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -390,6 +394,49 @@ class _userState extends State<user> {
               }
             },
           )
+        ],
+      ),
+    ))
+    ;
+  }
+}
+
+class AppDrawer extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Color(0xFFC79A99),
+            ),
+            child: Text(
+              'Menu',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+              ),
+            ),
+          ),
+          ListTile(
+            title: Text('Dishes'),
+            onTap: () {
+              Navigator.pop(context); // Close the drawer
+              // Navigate to the home screen or any other screen
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Dishes()));
+            },
+          ),
+          ListTile(
+            title: Text('Category'),
+            onTap: () {
+              Navigator.pop(context);
+              // Navigate to other screen 1
+              // Replace UserScreen with the appropriate screen widget
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Dashboard()));
+            },
+          ),
         ],
       ),
     );

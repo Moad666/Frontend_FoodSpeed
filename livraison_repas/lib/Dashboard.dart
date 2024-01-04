@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:livraison_repas/dishes.dart';
+import 'package:livraison_repas/user.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({Key? key});
@@ -200,6 +202,25 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
+// Logout
+Future<void> logoutUser() async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8000/api/logout/'),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        Navigator.pushReplacementNamed(context, '/login');
+      } else {
+        print('Error logging out: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error: $error');
+    }
+  }
   @override
   void initState() {
     super.initState();
@@ -213,8 +234,15 @@ class _DashboardState extends State<Dashboard> {
         title: Text('Category'),
         centerTitle: true,
         backgroundColor: Color(0xFFC79A99),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: logoutUser,
+          ),
+        ],
       ),
-      body: Column(
+      drawer: AppDrawer(),
+      body: SingleChildScrollView( child : Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -303,6 +331,48 @@ class _DashboardState extends State<Dashboard> {
               }
             },
           )
+        ],
+      ),
+    ));
+  }
+}
+
+class AppDrawer extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Color(0xFFC79A99),
+            ),
+            child: Text(
+              'Menu',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+              ),
+            ),
+          ),
+          ListTile(
+            title: Text('User'),
+            onTap: () {
+              Navigator.pop(context); // Close the drawer
+              // Navigate to the home screen or any other screen
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => user()));
+            },
+          ),
+          ListTile(
+            title: Text('Dishes'),
+            onTap: () {
+              Navigator.pop(context);
+              // Navigate to other screen 1
+              // Replace UserScreen with the appropriate screen widget
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Dishes()));
+            },
+          ),
         ],
       ),
     );

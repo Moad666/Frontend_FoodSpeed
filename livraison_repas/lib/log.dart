@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:livraison_repas/signup.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class log extends StatefulWidget {
   const log({Key? key});
@@ -28,20 +30,25 @@ class _log extends State<log> {
 
     if (response.statusCode == 200) {
       final token = jsonDecode(response.body)['access'];
-      /*showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Authentication success'),
-          content: Text('Welcome.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('OK'),
-            ),
-          ],
-        ),
-      );*/
-      Navigator.pushReplacementNamed(context, '/Home');
+
+      /*final prefs = await SharedPreferences.getInstance();
+      prefs.setString('authToken', token);*/
+      /*final prefs = FlutterSecureStorage();
+      await prefs.write(key: 'authToken', value: token);*/
+
+      final superuserResponse = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/is_superuser/'),
+        headers: <String, String>{
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (superuserResponse.statusCode == 200) {
+        final isSuperuser = jsonDecode(superuserResponse.body)['is_superuser'];
+        if (isSuperuser) {
+          Navigator.pushReplacementNamed(context, '/Dashboard');
+        } else {
+          Navigator.pushReplacementNamed(context, '/Home');
+        }
     } else if (usernameController.text == '' || passwordController.text == '') {
       showDialog(
         context: context,
@@ -72,6 +79,7 @@ class _log extends State<log> {
         ),
       );
     }
+  }
   }
 
   @override
@@ -109,7 +117,7 @@ class _log extends State<log> {
                 bottomLeft: Radius.circular(200),
                 bottomRight: Radius.circular(200))),
       ),
-      body: Padding(
+      body: SingleChildScrollView( child : Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -195,6 +203,6 @@ class _log extends State<log> {
           ],
         ),
       ),
-    );
+    ));
   }
 }

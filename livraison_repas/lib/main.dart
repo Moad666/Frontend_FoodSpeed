@@ -4,16 +4,18 @@ import 'log.dart';
 import 'signup.dart';
 import 'Dashboard.dart';
 import 'user.dart';
+import 'Dishes.dart';
 
 void main() {
   runApp(MaterialApp(
-    home:user(),
+    home:log(),
     routes: {
       '/Home': (context) => Home(),
       '/login' : (context) => log(),
       '/signup' : (context) =>signup(),
       '/Dashboard' : (context) => Dashboard(),
       '/User' : (context) => user(),
+      '/Dishes' : (context) => Dishes(),
     },
     debugShowCheckedModeBanner: false,
   ));
