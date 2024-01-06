@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:livraison_repas/signup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 
 class log extends StatefulWidget {
   const log({Key? key});
@@ -31,11 +31,14 @@ class _log extends State<log> {
     if (response.statusCode == 200) {
       final token = jsonDecode(response.body)['access'];
 
-      /*final prefs = await SharedPreferences.getInstance();
-      prefs.setString('authToken', token);*/
-      /*final prefs = FlutterSecureStorage();
-      await prefs.write(key: 'authToken', value: token);*/
+      // store token
+      final prefs = await SharedPreferences.getInstance();
+      prefs.setString('authToken', token);
 
+      // Read token
+      final tok = prefs.getString('authToken') ?? 0;
+     
+      //print("Token : " + token);
       final superuserResponse = await http.get(
         Uri.parse('http://10.0.2.2:8000/api/is_superuser/'),
         headers: <String, String>{
@@ -47,6 +50,7 @@ class _log extends State<log> {
         if (isSuperuser) {
           Navigator.pushReplacementNamed(context, '/Dashboard');
         } else {
+          //print(tok);
           Navigator.pushReplacementNamed(context, '/Home');
         }
     } else if (usernameController.text == '' || passwordController.text == '') {
