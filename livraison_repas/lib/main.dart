@@ -5,6 +5,7 @@ import 'signup.dart';
 import 'Dashboard.dart';
 import 'user.dart';
 import 'Dishes.dart';
+import 'dishesD.dart';
 
 void main() {
   runApp(MaterialApp(

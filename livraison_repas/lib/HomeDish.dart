@@ -1,11 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:livraison_repas/Dashboard.dart';
-import 'package:livraison_repas/Dishes.dart';
 import 'package:http/http.dart' as http;
+import 'package:livraison_repas/dishes.dart';
+import 'package:livraison_repas/dishesD.dart';
+
+import 'user.dart';
 
 class HomeDish extends StatefulWidget {
   const HomeDish({super.key});
@@ -123,22 +124,33 @@ class _HomeDishState extends State<HomeDish> {
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
                       var dish = snapshot.data![index];
-                      return Card(
-                        child: Column(
-                          children: [
-                            Image.network(
-                              dish.url,
-                              height: 120,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
+                      return GestureDetector(
+                        onTap: () {
+                          // Navigate to the DishesDetail screen with the selected dish
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => dishesDetail(dish: dish),
                             ),
-                            ListTile(
-                              title: Text(dish.name),
-                              subtitle: Text(dish.description),
-                              trailing:
-                                  Text('\DH${dish.prix.toStringAsFixed(2)}'),
-                            ),
-                          ],
+                          );
+                        },
+                        child: Card(
+                          child: Column(
+                            children: [
+                              Image.network(
+                                dish.url,
+                                height: 120,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                              ListTile(
+                                title: Text(dish.name),
+                                subtitle: Text(dish.description),
+                                trailing:
+                                    Text('\DH${dish.prix.toStringAsFixed(2)}'),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
