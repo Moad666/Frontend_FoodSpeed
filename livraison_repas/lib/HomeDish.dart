@@ -1,11 +1,9 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:livraison_repas/Dashboard.dart';
 import 'package:http/http.dart' as http;
 import 'package:livraison_repas/dishes.dart';
 import 'package:livraison_repas/dishesD.dart';
-
 import 'user.dart';
 
 class HomeDish extends StatefulWidget {
@@ -52,6 +50,30 @@ class dishes {
 class _HomeDishState extends State<HomeDish> {
   TextEditingController searchController = TextEditingController();
 
+  void searchDishes() {
+    setState(() {
+      futureDishes = listDishesByNameOrCategorie(searchController.text);
+    });
+  }
+
+  // Search
+ Future<List<dishes>> listDishesByNameOrCategorie(String query) async {
+  final response = await http.get(
+    Uri.parse('http://10.0.2.2:8000/api/search/?name=$query'),
+    headers: <String, String>{
+      'Content-Type': 'application/json',
+    },
+  );
+  if (response.statusCode == 200) {
+    List<dynamic> jsonResponse = json.decode(response.body);
+    return jsonResponse.map((dish) => dishes.fromJson(dish)).toList();
+  } else {
+    throw Exception('Failed to load dishes');
+  }
+}
+
+
+  // List Dishes
   Future<List<dishes>> listDishes() async {
     final response = await http.get(
       Uri.parse('http://10.0.2.2:8000/api/list_dishes/'),
@@ -82,26 +104,36 @@ class _HomeDishState extends State<HomeDish> {
         children: [
           Padding(
             padding: const EdgeInsets.all(50.0),
-            child: Container(
-              width: double.infinity,
-              child: TextField(
-                controller: searchController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                  labelText: 'Search',
-                  labelStyle: TextStyle(
-                    color: Color.fromARGB(255, 112, 111, 111),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFC79A99)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFC79A99)),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: searchController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      labelText: 'Search',
+                      labelStyle: TextStyle(
+                        color: Color.fromARGB(255, 112, 111, 111),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xFFC79A99)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xFFC79A99)),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                IconButton(
+                  onPressed: () {
+                    searchDishes();
+                  },
+                  icon: Icon(Icons.search),
+                  color: Color(0xFFC79A99),
+                ),
+              ],
             ),
           ),
           SizedBox(height: 10),

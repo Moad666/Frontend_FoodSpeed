@@ -6,6 +6,7 @@ import 'Dashboard.dart';
 import 'user.dart';
 import 'Dishes.dart';
 import 'dishesD.dart';
+import 'HomeDish.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -17,6 +18,7 @@ void main() {
       '/Dashboard' : (context) => Dashboard(),
       '/User' : (context) => user(),
       '/Dishes' : (context) => Dishes(),
+      '/Homedish': (context) => HomeDish(),
     },
     debugShowCheckedModeBanner: false,
   ));

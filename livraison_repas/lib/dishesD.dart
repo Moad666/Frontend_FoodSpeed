@@ -18,6 +18,218 @@ class dishesDetail extends StatefulWidget {
 class _dishesDetailState extends State<dishesDetail> {
   TextEditingController commentController = TextEditingController();
   int itemCount = 1;
+
+  Future<void> addComment() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final authToken = prefs.getString('authToken');
+
+      final disheId = widget.dish.id;
+
+      // Fetch the authenticated user's data
+      final userResponse = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/get_authenticated_user/'),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
+      );
+
+      // Check the response status for fetching user data
+      if (userResponse.statusCode == 200) {
+        final userData = jsonDecode(userResponse.body);
+        final userId = userData['id'];
+
+        // Prepare the data for the comment
+        final Map<String, dynamic> commentData = {
+          'comment': commentController.text,
+          'plat': disheId,
+          'user': userId.toString(),
+        };
+
+        // Send a POST request to create a comment
+        final response = await http.post(
+          Uri.parse('http://10.0.2.2:8000/api/create_comment/'),
+          headers: <String, String>{
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $authToken',
+          },
+          body: jsonEncode(commentData),
+        );
+
+        // Check the response status for the comment creation
+        if (response.statusCode == 201) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Success'),
+              content: Text('Opinion added successfully.'),
+              actions: [
+                TextButton(
+                  onPressed: () {Navigator.pop(context); commentController.clear();},
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Fields Error'),
+              content: Text('Something went wrong.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      } else {
+        // Handle error when fetching user data
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Error'),
+            content: Text('Failed to fetch user data.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error: $e');
+      // Handle error appropriately, e.g., show an error dialog.
+    }
+  }
+
+ Future<void> addFavorite() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final authToken = prefs.getString('authToken');
+
+    final disheId = widget.dish.id;
+
+    // Fetch the authenticated user's data
+    final userResponse = await http.get(
+      Uri.parse('http://10.0.2.2:8000/api/get_authenticated_user/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $authToken',
+      },
+    );
+
+    // Check the response status for fetching user data
+    if (userResponse.statusCode == 200) {
+      final userData = jsonDecode(userResponse.body);
+      final userId = userData['id'];
+
+      // Check if the user has already ranked the dish
+      final checkFavoriteResponse = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/check_favorite/$userId/$disheId/'),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
+      );
+
+      if (checkFavoriteResponse.statusCode == 200) {
+        // User has already ranked the dish, show an error message
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Error'),
+            content: Text('You have already ranked this dish.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        // User has not ranked the dish, proceed to add favorite
+        final Map<String, dynamic> commentData = {
+          'rank': 5,
+          'user': userId.toString(),
+          'plat': disheId,
+        };
+
+        // Send a POST request to create a comment
+        final response = await http.post(
+          Uri.parse('http://10.0.2.2:8000/api/create_favorite/'),
+          headers: <String, String>{
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $authToken',
+          },
+          body: jsonEncode(commentData),
+        );
+
+        // Check the response status for the comment creation
+        if (response.statusCode == 201) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Success'),
+              content: Text('Favorite added successfully.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    commentController.clear();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Fields Error'),
+              content: Text('Something went wrong.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    } else {
+      // Handle error when fetching user data
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Error'),
+          content: Text('Failed to fetch user data.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  } catch (e) {
+    print('Error: $e');
+    // Handle error appropriately, e.g., show an error dialog.
+  }
+}
+
+
+
   @override
   Widget build(BuildContext context) {
     int dishId = widget.dish.id;
@@ -38,9 +250,21 @@ class _dishesDetailState extends State<dishesDetail> {
               fit: BoxFit.cover,
             ),
             SizedBox(height: 15),
-            Text(
-              'Name: ${widget.dish.name}',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Text(
+                  'Name: ${widget.dish.name}',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                onPressed: () {
+                  addFavorite();
+                  print('favorite button clicked');
+                },
+                icon: Icon(Icons.favorite),
+                color: Color(0xFFC79A99),
+              ),
+              ],
             ),
             SizedBox(height: 20),
             Text('Description: ${widget.dish.description}'),
@@ -72,11 +296,11 @@ class _dishesDetailState extends State<dishesDetail> {
                   ),
                 ),
                 SizedBox(width: 10),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: Color(0xFFC79A99),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Color(0xFFC79A99), // backgroundColor
                   ),
-                  onPressed: () {},
+                  onPressed: addComment,
                   child: Text(
                     'Add',
                     style: TextStyle(
@@ -127,39 +351,7 @@ class _dishesDetailState extends State<dishesDetail> {
                     backgroundColor:
                         MaterialStateProperty.all<Color>(Colors.orange),
                   ),
-                  onPressed: () async {
-
-                    final prefs = await SharedPreferences.getInstance();
-                    final authToken = prefs.getString('authToken');
-
-                    final disheId = widget.dish.id;
-
-                    // Prepare the data for the comment
-                    final Map<String, dynamic> commentData = {
-                      'comment': commentController.text,
-                      'dishe': disheId,
-                      //'user': userId,
-                    };
-
-                    // Send a POST request to create a comment
-                    final response = await http.post(
-                      Uri.parse('http://10.0.2.2:8000/api/create_comment/'),
-                      headers: <String, String>{
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer $authToken',
-                      },
-                      body: jsonEncode(commentData),
-                    );
-
-                    // Check the response status
-                    if (response.statusCode == 201) {
-                      // Comment created successfully
-                      // You can handle success accordingly
-                    } else {
-                      // Comment creation failed
-                      // You can handle errors accordingly
-                    }
-                  },
+                  onPressed: addComment,
                   child: Text('Add to Cart'),
                 ),
               ],

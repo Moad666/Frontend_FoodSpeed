@@ -48,7 +48,7 @@ class _HomeState extends State<Home> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: 'Person',
+            label: 'Account',
           ),
         ],
         selectedItemColor: Color(0xFFC79A99),
