@@ -16,11 +16,13 @@ class Favorite extends StatefulWidget {
 }
 
 class Ranking {
+  final int id;
   final int rank;
   final User user;
   final dishes? plat; // Nullable type
 
   Ranking({
+    required this.id,
     required this.rank,
     required this.user,
     this.plat, // Nullable
@@ -30,6 +32,7 @@ class Ranking {
     final platJson = json['plat'];
 
     return Ranking(
+      id : json['id'],
       rank: json['rank'],
       user: User.fromJson(json['user']),
       plat: platJson is int
@@ -44,12 +47,58 @@ class Ranking {
 class _FavoriteState extends State<Favorite> {
 
   List<Map<String, dynamic>> rankingList = [];
+  late Future<void> futureRanking;
 
   @override
   void initState() {
     super.initState();
     fetchData();
   }
+
+  // Delete favorite
+  Future<void> deleteFavorite(int favoriteId) async {
+    final response = await http.delete(
+      Uri.parse('http://10.0.2.2:8000/api/delete_favorite/${favoriteId}/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 204) {
+      setState(() {
+        futureRanking = fetchData();
+      });
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Success'),
+          content: Text('favorite deleted succeffully.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Error'),
+          content: Text('Favorite not deleted !'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+
+  // List Data
   Future<void> fetchData() async {
     final response = await http.get(
     Uri.parse('http://10.0.2.2:8000/api/list_ranking_with_plat/'),
@@ -66,6 +115,8 @@ class _FavoriteState extends State<Favorite> {
       throw Exception('Failed to load data');
     }
   }
+  
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,6 +140,7 @@ class _FavoriteState extends State<Favorite> {
                 itemCount: rankingList.length,
                 itemBuilder: (context, index) {
                   final plat = rankingList[index]['plat'];
+                  final favoriteId = rankingList[index]['id'];
                   return ListTile(
                     leading: Image.network(
                       plat['url'],
@@ -98,6 +150,13 @@ class _FavoriteState extends State<Favorite> {
                     ),
                     title: Text(plat['name']),
                     subtitle: Text(plat['prix'].toString() + 'DH'),
+                    trailing: IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            deleteFavorite(favoriteId);
+                            
+                          },
+                        ),
                   );
                 },
               ),

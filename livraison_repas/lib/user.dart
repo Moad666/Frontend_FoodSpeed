@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:livraison_repas/Dashboard.dart';
 import 'package:livraison_repas/dishes.dart';
+import 'package:livraison_repas/log.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class user extends StatefulWidget {
   const user({Key? key});
@@ -38,6 +40,20 @@ class _userState extends State<user> {
   TextEditingController usernameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+
+// Logout
+Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove('authToken');
+
+    // Navigate to the login screen
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => log(),
+      ),
+    );
+  }
+
 
 // Update User
   Future<void> updateUser(int userId) async {
@@ -272,6 +288,14 @@ class _userState extends State<user> {
         title: Text('Users'),
         centerTitle: true,
         backgroundColor: Color(0xFFC79A99),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () {
+              logout();
+            },
+          ),
+        ],
       ),
       drawer: AppDrawer(), 
       body:

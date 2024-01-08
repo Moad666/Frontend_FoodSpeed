@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:livraison_repas/Dashboard.dart';
 import 'package:livraison_repas/user.dart';
+import 'package:livraison_repas/log.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Dishes extends StatefulWidget {
   const Dishes({Key? key});
@@ -72,6 +74,20 @@ class _DishesState extends State<Dishes> {
   TextEditingController urlController = TextEditingController();
   TextEditingController categorieController = TextEditingController();
   Category? selectedCategory;
+
+// Logout
+Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove('authToken');
+
+    // Navigate to the login screen
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => log(),
+      ),
+    );
+  }
+
 // Delete Dishe
   Future<void> deleteDishes(int disheId) async {
     final response = await http.delete(
@@ -381,6 +397,14 @@ class _DishesState extends State<Dishes> {
           title: Text('Dishes'),
           centerTitle: true,
           backgroundColor: Color(0xFFC79A99),
+          actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () {
+              logout();
+            },
+          ),
+        ],
         ),
         drawer: AppDrawer(),
         body: SingleChildScrollView(

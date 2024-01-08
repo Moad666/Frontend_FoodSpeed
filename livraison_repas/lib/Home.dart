@@ -3,7 +3,8 @@ import 'package:livraison_repas/Account.dart';
 import 'package:livraison_repas/Cart.dart';
 import 'package:livraison_repas/Favorite.dart';
 import 'package:livraison_repas/HomeDish.dart';
-
+import 'package:livraison_repas/log.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -13,6 +14,20 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove('authToken');
+
+    // Navigate to the login screen
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => log(),
+      ),
+    );
+  }
+
+
   int _currentIndex = 0;
 
   @override
@@ -22,6 +37,14 @@ class _HomeState extends State<Home> {
         title: Text('Home'),
         centerTitle: true,
         backgroundColor: Color(0xFFC79A99),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.exit_to_app),
+            onPressed: () {
+              logout();
+            },
+          ),
+        ],
       ),
       body: _buildPage(_currentIndex),
       bottomNavigationBar: BottomNavigationBar(

@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:livraison_repas/dishes.dart';
 import 'package:livraison_repas/user.dart';
+import 'package:livraison_repas/log.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({Key? key});
@@ -27,6 +29,20 @@ class Category {
 
 class _DashboardState extends State<Dashboard> {
   TextEditingController nameController = TextEditingController();
+
+// Logout
+Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove('authToken');
+
+    // Navigate to the login screen
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => log(),
+      ),
+    );
+  }
+
 
   // Create Category
   Future<void> createCategorie() async {
@@ -237,7 +253,9 @@ Future<void> logoutUser() async {
         actions: [
           IconButton(
             icon: Icon(Icons.logout),
-            onPressed: logoutUser,
+            onPressed: () {
+              logout();
+            },
           ),
         ],
       ),

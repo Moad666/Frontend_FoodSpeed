@@ -6,6 +6,7 @@ import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:livraison_repas/HomeDish.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 class dishesDetail extends StatefulWidget {
   final dishes dish;
@@ -19,6 +20,7 @@ class _dishesDetailState extends State<dishesDetail> {
   TextEditingController commentController = TextEditingController();
   int itemCount = 1;
 
+// Add Comment
   Future<void> addComment() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -109,6 +111,8 @@ class _dishesDetailState extends State<dishesDetail> {
     }
   }
 
+
+// Add Favorite
  Future<void> addFavorite() async {
   try {
     final prefs = await SharedPreferences.getInstance();
@@ -229,6 +233,97 @@ class _dishesDetailState extends State<dishesDetail> {
 }
 
 
+// Add Commande
+Future<void> addCommande() async{
+  try {
+      final prefs = await SharedPreferences.getInstance();
+      final authToken = prefs.getString('authToken');
+
+      final disheId = widget.dish.id;
+
+      // Fetch the authenticated user's data
+      final userResponse = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/get_authenticated_user/'),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
+      );
+
+      // Check the response status for fetching user data
+      if (userResponse.statusCode == 200) {
+        final userData = jsonDecode(userResponse.body);
+        final userId = userData['id'];
+
+        // Prepare the data for the comment
+        final Map<String, dynamic> commentData = {
+          'status': "Processing",
+          'dateCommande' : DateFormat('yyyy-MM-dd').format(DateTime.now()),
+          'plat': disheId,
+          'user': userId.toString(),
+        };
+
+        // Send a POST request to create a comment
+        final response = await http.post(
+          Uri.parse('http://10.0.2.2:8000/api/create_commande/'),
+          headers: <String, String>{
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $authToken',
+          },
+          body: jsonEncode(commentData),
+        );
+
+        // Check the response status for the comment creation
+        if (response.statusCode == 201) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Success'),
+              content: Text('Command added successfully.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Fields Error'),
+              content: Text('Something went wrong.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      } else {
+        // Handle error when fetching user data
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Error'),
+            content: Text('Failed to fetch user data.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error: $e');
+      // Handle error appropriately, e.g., show an error dialog.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -351,7 +446,7 @@ class _dishesDetailState extends State<dishesDetail> {
                     backgroundColor:
                         MaterialStateProperty.all<Color>(Colors.orange),
                   ),
-                  onPressed: addComment,
+                  onPressed: addCommande,
                   child: Text('Add to Cart'),
                 ),
               ],
